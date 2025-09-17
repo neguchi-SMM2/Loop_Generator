@@ -24,7 +24,7 @@
   .button-group {
     margin-top: 10px;
   }
-  #results { margin-top:15px; font-family: monospace; white-space:pre-wrap; font-size:15px; }
+  #results { margin-top:15px; font-family: monospace; white-space:pre-wrap; font-size:15px;}
 </style>
 </head>
 <body>
@@ -34,7 +34,7 @@
   <input type="number" id="target" value="300">
 </label>
 <label>最大表示数：
-  <input type="number" id="limit" value="500">
+  <input type="number" id="limit" value="100">
 </label>
 <label>モード選択：
   <select id="mode">
@@ -44,11 +44,11 @@
 </label>
 <div class="button-group">
   <button id="sortBtn" disabled>s-d差でソート</button>
+  <button id="sortCBtn" disabled>c個数でソート</button>
   <button id="sortModeBtn" disabled>mode1or2個数でソート</button>
   <button id="filterBtn" disabled>mode1or2が1種類以下で絞込</button>
-  <button id="resetBtn" disabled>並び替えリセット</button>
-  <br>
-  <button id="calc">計算開始</button>
+  <button id="resetBtn" disabled>リセット</button>
+  <br><button id="calc">生成</button>
 </div>
 <div id="results"></div>
 <script>
@@ -90,6 +90,7 @@ document.getElementById('calc').addEventListener('click', ()=>{
   displayedResults = [...currentResults]; // 表示用結果も初期化
   document.getElementById('sortBtn').disabled = currentResults.length === 0;
   document.getElementById('sortModeBtn').disabled = currentResults.length === 0;
+  document.getElementById('sortCBtn').disabled = currentResults.length === 0;
   document.getElementById('filterBtn').disabled = currentResults.length === 0;
   document.getElementById('resetBtn').disabled = currentResults.length === 0;
   render(displayedResults);
@@ -107,6 +108,19 @@ document.getElementById('sortModeBtn').addEventListener('click', ()=>{
     const totalCountB = mode1or2ItemsB.reduce((sum, item) => sum + (b[item.name] || 0), 0);
     
     return totalCountA - totalCountB;
+  });
+  
+  render(displayedResults);
+});
+
+document.getElementById('sortCBtn').addEventListener('click', ()=>{
+  if(displayedResults.length === 0) return;
+  
+  // 現在表示されている結果をcの個数でソート（昇順）
+  displayedResults = [...displayedResults].sort((a, b) => {
+    const cCountA = a["c"] || 0;
+    const cCountB = b["c"] || 0;
+    return cCountA - cCountB;
   });
   
   render(displayedResults);
