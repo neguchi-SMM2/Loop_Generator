@@ -30,7 +30,7 @@
 <body>
 <h1>組み合わせ計算</h1>
 <small>断線を使用したレールループを生成してくれます。(beta版)<br>使い方は<a href="#HowtoUse">こちら</a></small>
-<label>目標値：
+<label>目標値[f]：
   <input type="number" id="target" value="300">
 </label>
 <label>最大表示数：
@@ -53,6 +53,23 @@
 <div id="results"></div>
 <br>
 <h1><a name="HowtoUse">使い方</a></h1>
+目標値に希望の値を入力し、モードを選択して「生成」ボタンを押すと結果が表示されます。<br>
+目標値が大きくなるにつれ計算量も増えるため、最大表示数を適宜調整してください。<br>
+<br>
+<h2>レール(断線)種類</h2><br>
+s = 直線レール<br>
+d = 斜線レール<br>
+c = 曲線レール<br>
+
+<h2>周回モード</h2><br>
+↓sG1 = ↓G1-直線レール<br>
+↓sG2 = ↓G2-直線レール<br>
+↑sG1 = ↑G1-直線レール<br>
+↑sG2 = ↑G2-直線レール<br>
+
+<h2>往復モード</h2><br>
+sG1 = G1-直線レール<br>
+sG2 = G2-直線レール<br>
 <script>
 const baseItems = [
   {name:"s", value:21, mode:0},
