@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>組み合わせ計算</title>
+<style>
+  body {
+    font-family: sans-serif;
+    background: #f5f5f5;
+    color: #222;
+    margin: 0;
+    padding: 20px;
+  }
+  h1 { font-size: 20px; margin-bottom: 10px; }
+  label { display:block; margin-top:10px; }
+  input,select,button {
+    margin-top:5px; padding:5px 8px; font-size:14px;
+  }
+  button {
+    margin-right: 10px;
+    cursor: pointer;
+  }
+  .button-group {
+    margin-top: 10px;
+  }
+  #results { margin-top:15px; font-family: monospace; white-space:pre-wrap; font-size:15px; }
+</style>
+</head>
+<body>
+<h1>組み合わせ計算</h1>
+<small>断線を使用したレールループの作成ができます。(beta版)</small>
+<label>目標値：
+  <input type="number" id="target" value="300">
+</label>
+<label>最大表示数：
+  <input type="number" id="limit" value="500">
+</label>
+<label>モード選択：
+  <select id="mode">
+    <option value="loop">周回モード</option>
+    <option value="roundtrip">往復モード</option>
+  </select>
+</label>
+<div class="button-group">
+  <button id="sortBtn" disabled>s-d差でソート</button>
+  <button id="sortModeBtn" disabled>mode1or2個数でソート</button>
+  <button id="filterBtn" disabled>mode1or2が1種類以下で絞込</button>
+  <button id="resetBtn" disabled>並び替えリセット</button>
+  <br>
+  <button id="calc">計算開始</button>
+</div>
+<div id="results"></div>
+<script>
+const baseItems = [
+  {name:"s", value:21, mode:0},
+  {name:"d", value:30, mode:0},
+  {name:"c", value:36, mode:0},
+  {name:"↓sG1", value:31, mode:1},
+  {name:"↓sG2", value:38, mode:1},
+  {name:"↑sG1", value:29, mode:1},
+  {name:"↑sG2", value:39, mode:1},
+  {name:"sG1", value:60, mode:2},
+  {name:"sG2", value:77, mode:2}
+];
+
+let currentResults = [];
+let displayedResults = []; // 現在表示されている結果
+
+document.getElementById('calc').addEventListener('click', ()=>{
+  const target = Number(document.getElementById('target').value);
+  const limit  = Number(document.getElementById('limit').value);
+  const mode   = document.getElementById('mode').value;
+  // mode:0は往復の場合value2倍
+  let items = baseItems.map(it=>{
+    if (it.mode===0 && mode==="roundtrip"){
+      return {...it, value:it.value*2};
+    }
+    return {...it};
+  });
+  // 周回モードでは mode:0,1 のみ
+  if(mode==="loop"){
+    items = items.filter(it=>it.mode===0 || it.mode===1);
+  }
+  // 往復モードでは mode:0,2 のみ
+  if(mode==="roundtrip"){
+    items = items.filter(it=>it.mode===0 || it.mode===2);
+  }
+  currentResults = findCombinations(target,limit,items);
+  displayedResults = [...currentResults]; // 表示用結果も初期化
+  document.getElementById('sortBtn').disabled = currentResults.length === 0;
+  document.getElementById('sortModeBtn').disabled = currentResults.length === 0;
+  document.getElementById('filterBtn').disabled = currentResults.length === 0;
+  document.getElementById('resetBtn').disabled = currentResults.length === 0;
+  render(displayedResults);
+});
+
+document.getElementById('sortModeBtn').addEventListener('click', ()=>{
+  if(displayedResults.length === 0) return;
+  
+  // 現在表示されている結果をmode:1or2の個数の合計でソート（昇順）
+  displayedResults = [...displayedResults].sort((a, b) => {
+    const mode1or2ItemsA = baseItems.filter(item => item.mode === 1 || item.mode === 2);
+    const totalCountA = mode1or2ItemsA.reduce((sum, item) => sum + (a[item.name] || 0), 0);
+    
+    const mode1or2ItemsB = baseItems.filter(item => item.mode === 1 || item.mode === 2);
+    const totalCountB = mode1or2ItemsB.reduce((sum, item) => sum + (b[item.name] || 0), 0);
+    
+    return totalCountA - totalCountB;
+  });
+  
+  render(displayedResults);
+});
+
+document.getElementById('filterBtn').addEventListener('click', ()=>{
+  if(displayedResults.length === 0) return;
+  
+  // 現在表示されている結果からmode:1または2の値が1種類以下の組み合わせを絞り込み
+  displayedResults = displayedResults.filter(result => {
+    // mode:1または2のアイテムで、個数が1以上のものを数える
+    const mode1or2Items = baseItems.filter(item => item.mode === 1 || item.mode === 2);
+    const usedCount = mode1or2Items.filter(item => (result[item.name] || 0) > 0).length;
+    return usedCount <= 1;
+  });
+  
+  render(displayedResults);
+});
+
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  if(currentResults.length === 0) return;
+  
+  // 元の計算結果に戻す
+  displayedResults = [...currentResults];
+  render(displayedResults);
+});
+
+document.getElementById('sortBtn').addEventListener('click', ()=>{
+  if(displayedResults.length === 0) return;
+  
+  // 現在表示されている結果をs-d差の絶対値でソート（昇順）
+  displayedResults = [...displayedResults].sort((a, b) => {
+    const sCountA = a["s"] || 0;
+    const dCountA = a["d"] || 0;
+    const diffA = Math.abs(sCountA - dCountA);
+    
+    const sCountB = b["s"] || 0;
+    const dCountB = b["d"] || 0;
+    const diffB = Math.abs(sCountB - dCountB);
+    
+    return diffA - diffB;
+  });
+  
+  render(displayedResults);
+});
+
+document.getElementById('filterBtn').addEventListener('click', ()=>{
+  if(displayedResults.length === 0) return;
+  
+  // 現在表示されている結果からmode:1または2の値が1種類以下の組み合わせを絞り込み
+  displayedResults = displayedResults.filter(result => {
+    // mode:1または2のアイテムで、個数が1以上のものを数える
+    const mode1or2Items = baseItems.filter(item => item.mode === 1 || item.mode === 2);
+    const usedCount = mode1or2Items.filter(item => (result[item.name] || 0) > 0).length;
+    return usedCount <= 1;
+  });
+  
+  render(displayedResults);
+});
+
+function render(results){
+  const out = document.getElementById('results');
+  if(results.length===0){
+    out.textContent = '該当する組み合わせはありません。';
+    return;
+  }
+  out.textContent = results.map(r=>formatCompact(r)).join("\n");
+}
+function formatCompact(r){
+  return Object.entries(r)
+    .filter(([k,v])=>v>0)
+    .map(([k,v])=>`${k}×${v}`)
+    .join(', ');
+}
+function findCombinations(target,limit,items){
+  const results=[];
+  const counts={};
+  const sItem=items.find(i=>i.name==="s");
+  function dfs(idx,remaining){
+    if(results.length>=limit) return;
+    if(idx===items.length){
+      if(remaining===0){
+        // 制約確認
+        const sCount=counts["s"]||0;
+        const m1sum=items.filter(i=>i.mode===1).reduce((sum,i)=>sum+(counts[i.name]||0),0);
+        const m2sum=items.filter(i=>i.mode===2).reduce((sum,i)=>sum+(counts[i.name]||0),0);
+        // mode1 ≤4, mode2 ≤2, mode1+mode2 ≤ sCount
+        if(m1sum<=4 && m2sum<=2 && m1sum+m2sum<=sCount){
+          results.push({...counts});
+        }
+      }
+      return;
+    }
+    const item=items[idx];
+    const max=Math.floor(remaining/item.value);
+    for(let n=max;n>=0;n--){
+      counts[item.name]=n;
+      dfs(idx+1,remaining-n*item.value);
+    }
+    counts[item.name]=0;
+  }
+  dfs(0,target);
+  return results;
+}
+</script>
+</body>
+</html>
