@@ -67,7 +67,7 @@
   }
   
   .content.show {
-    max-height: 300px;
+    max-height: 400px;
     padding: 18px;
   }
   
@@ -86,6 +86,21 @@
   .checkbox-item input[type="checkbox"] {
     margin-right: 5px;
     margin-top: 0;
+  }
+  
+  .section-title {
+    font-weight: bold;
+    margin: 15px 0 10px 0;
+    padding: 5px;
+    background-color: #ddd;
+    border-radius: 3px;
+  }
+  
+  .special-note {
+    font-size: 12px;
+    color: #666;
+    font-style: italic;
+    margin-left: 20px;
   }
 </style>
 </head>
@@ -107,6 +122,23 @@
 
 <button type="button" class="collapsible">高度な設定</button>
 <div class="content">
+  <div class="section-title">基本レール</div>
+  <div class="checkbox-group">
+    <div class="checkbox-item">
+      <input type="checkbox" id="check-s" checked>
+      <label for="check-s">s - 直線レール (21f)</label>
+    </div>
+    <div class="checkbox-item">
+      <input type="checkbox" id="check-d" checked>
+      <label for="check-d">d - 斜線レール (30f)</label>
+    </div>
+    <div class="checkbox-item">
+      <input type="checkbox" id="check-c" checked>
+      <label for="check-c">c - 曲線レール (36f)</label>
+    </div>
+  </div>
+  
+  <div class="section-title">断線（周回モード）</div>
   <div id="mode1-checkboxes" class="checkbox-group">
     <div class="checkbox-item">
       <input type="checkbox" id="check-↓sG1" checked>
@@ -132,7 +164,6 @@
       <input type="checkbox" id="check-↓sG6">
       <label for="check-↓sG6">↓sG6 (60f)</label>
     </div>
-    <br>
     <div class="checkbox-item">
       <input type="checkbox" id="check-↑sG1" checked>
       <label for="check-↑sG1">↑sG1 (30f)</label>
@@ -147,6 +178,7 @@
     </div>
   </div>
   
+  <div class="section-title">断線（往復モード）</div>
   <div id="mode2-checkboxes" class="checkbox-group" style="display:none;">
     <div class="checkbox-item">
       <input type="checkbox" id="check-sG1" checked>
@@ -182,6 +214,7 @@
 目標値が大きくなるにつれ計算量も増えるため、最大表示数を適宜調整してください。<br>
 <br>
 <h2>レール(断線)種類</h2><br>
+<h3>基本レール</h3>
 s = 直線レール<br>
 d = 斜線レール<br>
 c = 曲線レール<br>
@@ -189,6 +222,9 @@ c = 曲線レール<br>
 ↓sG1 = ↓G1-直線レール<br>
 ↓sG2 = ↓G2-直線レール<br>
 ↓sG3 = ↓G3-直線レール<br>
+↓sG4 = ↓G4-直線レール<br>
+↓sG5 = ↓G5-直線レール<br>
+↓sG6 = ↓G6-直線レール<br>
 ↑sG1 = ↑G1-直線レール<br>
 ↑sG2 = ↑G2-直線レール<br>
 ↑sG3 = ↑G3-直線レール<br>
@@ -196,6 +232,7 @@ c = 曲線レール<br>
 sG1 = G1-直線レール<br>
 sG2 = G2-直線レール<br>
 sG3 = G3-直線レール<br>
+sF = 直線レール-F<br>
 <br>
 <h2>ソート、絞り込みについて</h2>
 ソート、絞り込みは「生成」ボタンを押した後に使用可能になります。<br>
@@ -222,7 +259,7 @@ const baseItems = [
   {name:"sG1", value:61, mode:2},
   {name:"sG2", value:77, mode:2},
   {name:"sG3", value:99, mode:2},
-  {name :"sF", value:132, mode:3}
+  {name:"sF", value:132, mode:3} // 特殊モード
 ];
 
 let currentResults = [];
@@ -255,6 +292,18 @@ document.getElementById('mode').addEventListener('change', function() {
   }
 });
 
+// 選択された基本レールを取得する関数
+function getSelectedBaseItems() {
+  const selected = [];
+  baseItems.filter(item => item.mode === 0).forEach(item => {
+    const checkbox = document.getElementById(`check-${item.name}`);
+    if (checkbox && checkbox.checked) {
+      selected.push(item);
+    }
+  });
+  return selected;
+}
+
 // 選択された断線レールを取得する関数
 function getSelectedMode1Items() {
   const selected = [];
@@ -278,13 +327,19 @@ function getSelectedMode2Items() {
   return selected;
 }
 
+// sFが選択されているかチェック
+function isSFSelected() {
+  const checkbox = document.getElementById('check-sF');
+  return checkbox && checkbox.checked;
+}
+
 document.getElementById('calc').addEventListener('click', ()=>{
   const target = Number(document.getElementById('target').value);
   const limit  = Number(document.getElementById('limit').value);
   const mode   = document.getElementById('mode').value;
   
-  // 基本アイテム（mode:0）を取得
-  let items = baseItems.filter(item => item.mode === 0).map(it=>{
+  // 選択された基本アイテム（mode:0）を取得
+  let items = getSelectedBaseItems().map(it=>{
     if (mode === "roundtrip") {
       return {...it, value: it.value * 2};
     }
@@ -296,6 +351,10 @@ document.getElementById('calc').addEventListener('click', ()=>{
     items = items.concat(getSelectedMode1Items());
   } else if (mode === "roundtrip") {
     items = items.concat(getSelectedMode2Items());
+    // sFが選択されている場合は追加（往復モードのみ）
+    if (isSFSelected()) {
+      items.push({name:"sF", value:132, mode:3});
+    }
   }
   
   currentResults = findCombinations(target,limit,items);
@@ -311,13 +370,13 @@ document.getElementById('calc').addEventListener('click', ()=>{
 document.getElementById('sortModeBtn').addEventListener('click', ()=>{
   if(displayedResults.length === 0) return;
   
-  // 現在表示されている結果をmode:1or2の個数の合計でソート（昇順）
+  // 現在表示されている結果をmode:1,2,3の個数の合計でソート（昇順）
   displayedResults = [...displayedResults].sort((a, b) => {
-    const mode1or2ItemsA = baseItems.filter(item => item.mode === 1 || item.mode === 2);
-    const totalCountA = mode1or2ItemsA.reduce((sum, item) => sum + (a[item.name] || 0), 0);
+    const mode123ItemsA = baseItems.filter(item => item.mode === 1 || item.mode === 2 || item.mode === 3);
+    const totalCountA = mode123ItemsA.reduce((sum, item) => sum + (a[item.name] || 0), 0);
     
-    const mode1or2ItemsB = baseItems.filter(item => item.mode === 1 || item.mode === 2);
-    const totalCountB = mode1or2ItemsB.reduce((sum, item) => sum + (b[item.name] || 0), 0);
+    const mode123ItemsB = baseItems.filter(item => item.mode === 1 || item.mode === 2 || item.mode === 3);
+    const totalCountB = mode123ItemsB.reduce((sum, item) => sum + (b[item.name] || 0), 0);
     
     return totalCountA - totalCountB;
   });
@@ -341,11 +400,11 @@ document.getElementById('sortCBtn').addEventListener('click', ()=>{
 document.getElementById('filterBtn').addEventListener('click', ()=>{
   if(displayedResults.length === 0) return;
   
-  // 現在表示されている結果からmode:1または2の値が1種類以下の組み合わせを絞り込み
+  // 現在表示されている結果からmode:1,2,3の値が1種類以下の組み合わせを絞り込み
   displayedResults = displayedResults.filter(result => {
-    // mode:1または2のアイテムで、個数が1以上のものを数える
-    const mode1or2Items = baseItems.filter(item => item.mode === 1 || item.mode === 2);
-    const usedCount = mode1or2Items.filter(item => (result[item.name] || 0) > 0).length;
+    // mode:1,2,3のアイテムで、個数が1以上のものを数える
+    const mode123Items = baseItems.filter(item => item.mode === 1 || item.mode === 2 || item.mode === 3);
+    const usedCount = mode123Items.filter(item => (result[item.name] || 0) > 0).length;
     return usedCount <= 1;
   });
   
@@ -387,16 +446,19 @@ function render(results){
   }
   out.textContent = results.map(r=>formatCompact(r)).join("\n");
 }
+
 function formatCompact(r){
   return Object.entries(r)
     .filter(([k,v])=>v>0)
     .map(([k,v])=>`${k}×${v}`)
     .join(', ');
 }
+
 function findCombinations(target,limit,items){
   const results=[];
   const counts={};
   const sItem=items.find(i=>i.name==="s");
+  
   function dfs(idx,remaining){
     if(results.length>=limit) return;
     if(idx===items.length){
@@ -406,15 +468,30 @@ function findCombinations(target,limit,items){
         const m1sum=items.filter(i=>i.mode===1).reduce((sum,i)=>sum+(counts[i.name]||0),0);
         const m2sum=items.filter(i=>i.mode===2).reduce((sum,i)=>sum+(counts[i.name]||0),0);
         const m3sum=items.filter(i=>i.mode===3).reduce((sum,i)=>sum+(counts[i.name]||0),0);
-        // mode1 ≤4, mode2 ≤2, mode1+mode2 ≤ sCount
-        if(m1sum<=4 && m2sum<=2 && m1sum+m2sum<=sCount && m3sum<=1){
+        
+        // sFの特殊制約：1回まで、sの個数制約を受けない
+        if(m3sum > 1) return; // sFは1回まで
+        
+        // 通常の制約：mode1 ≤4, mode2 ≤2, (mode1+mode2) ≤ sCount
+        // sFがある場合は、mode2が2回使われていてもOK（sFはsの制約を受けない）
+        const normalMode2Sum = m2sum; // sFを除いたmode2の合計
+        const constraintSum = m1sum + normalMode2Sum; // sFを除いた制約対象
+        
+        if(m1sum<=4 && m2sum<=2 && constraintSum<=sCount){
           results.push({...counts});
         }
       }
       return;
     }
+    
     const item=items[idx];
-    const max=Math.floor(remaining/item.value);
+    let max=Math.floor(remaining/item.value);
+    
+    // sFの場合は最大1回まで
+    if(item.mode === 3) {
+      max = Math.min(max, 1);
+    }
+    
     for(let n=max;n>=0;n--){
       counts[item.name]=n;
       dfs(idx+1,remaining-n*item.value);
