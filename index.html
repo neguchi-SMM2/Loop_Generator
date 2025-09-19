@@ -403,12 +403,20 @@ document.getElementById('calc').addEventListener('click', async () => {
   
   isCalculating = true;
   updateUIState(true);
-  document.getElementById('results').textContent = '計算中...';
+  document.getElementById('results').textContent = '計算を開始しています...';
   
   try {
     currentResults = await findCombinationsAsync(target, limit, items);
     displayedResults = [...currentResults];
-    render(displayedResults);
+    
+    // 計算完了時の最終表示
+    const out = document.getElementById('results');
+    if (currentResults.length === 0) {
+      out.textContent = '該当する組み合わせはありません。';
+    } else {
+      out.textContent = `計算完了！ ${currentResults.length}件の結果が見つかりました。\n\n` + 
+                       currentResults.map(r=>formatCompact(r)).join("\n");
+    }
   } catch (error) {
     document.getElementById('results').textContent = 'エラーが発生しました: ' + error.message;
   } finally {
@@ -511,7 +519,24 @@ async function findCombinationsAsync(target, limit, items) {
     const counts = {};
     const sItem = items.find(i => i.name === "s");
     let iterationCount = 0;
-    const YIELD_INTERVAL = 1000; // 1000回の計算ごとに制御を戻す
+    let lastDisplayUpdate = 0;
+    const YIELD_INTERVAL = 10000; // 10000回の計算ごとに制御を戻す
+    const DISPLAY_INTERVAL = 100; // 100個の結果ごとに表示を更新
+    
+    // リアルタイム表示用の関数
+    function updateDisplay() {
+      if (results.length > lastDisplayUpdate) {
+        displayedResults = [...results];
+        render(displayedResults);
+        lastDisplayUpdate = results.length;
+        
+        // 結果数を表示に追加
+        const out = document.getElementById('results');
+        const currentText = out.textContent;
+        out.textContent = `計算中... (${results.length}/${limit}件見つかりました)\n\n` + 
+                         results.map(r=>formatCompact(r)).join("\n");
+      }
+    }
     
     function dfs(idx, remaining) {
       iterationCount++;
@@ -539,13 +564,21 @@ async function findCombinationsAsync(target, limit, items) {
           const m2sum = items.filter(i => i.mode === 2).reduce((sum, i) => sum + (counts[i.name] || 0), 0);
           const m3sum = items.filter(i => i.mode === 3).reduce((sum, i) => sum + (counts[i.name] || 0), 0);
           
-          if (m3sum > 1) return Promise.resolve(); 
+          // sFの特殊制約：1回まで、sの個数制約を受けない
+          if (m3sum > 1) return Promise.resolve(); // sFは1回まで
           
-          const normalMode2Sum = m2sum; 
-          const constraintSum = m1sum + normalMode2Sum; 
+          // 通常の制約：mode1 ≤4, mode2 ≤2, (mode1+mode2) ≤ sCount
+          // sFがある場合は、mode2が2回使われていてもOK（sFはsの制約を受けない）
+          const normalMode2Sum = m2sum; // sFを除いたmode2の合計
+          const constraintSum = m1sum + normalMode2Sum; // sFを除いた制約対象
           
           if (m1sum <= 4 && m2sum <= 2 && constraintSum <= sCount) {
             results.push({ ...counts });
+            
+            // 定期的に表示を更新
+            if (results.length % DISPLAY_INTERVAL === 0 || results.length >= limit) {
+              updateDisplay();
+            }
           }
         }
         return Promise.resolve();
@@ -580,6 +613,8 @@ async function findCombinationsAsync(target, limit, items) {
     
     // 非同期処理を開始
     dfs(0, target).then(() => {
+      // 最終的に残った結果があれば表示
+      updateDisplay();
       resolve(results);
     }).catch(reject);
   });
