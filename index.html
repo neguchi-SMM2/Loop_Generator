@@ -26,6 +26,67 @@
     margin-top: 10px;
   }
   #results { margin-top:15px; font-family: monospace; white-space:pre-wrap; font-size:15px;}
+  
+  .collapsible {
+    background-color: #e7e7e7;
+    color: #222;
+    cursor: pointer;
+    padding: 10px;
+    width: 100%;
+    border: none;
+    text-align: left;
+    outline: none;
+    font-size: 14px;
+    margin-top: 10px;
+    border-radius: 4px;
+  }
+  
+  .collapsible:hover {
+    background-color: #ddd;
+  }
+  
+  .collapsible:after {
+    content: '\002B';
+    color: #222;
+    font-weight: bold;
+    float: right;
+    margin-left: 5px;
+  }
+  
+  .collapsible.active:after {
+    content: "\2212";
+  }
+  
+  .content {
+    padding: 0 18px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.2s ease-out;
+    background-color: #f9f9f9;
+    border-radius: 0 0 4px 4px;
+  }
+  
+  .content.show {
+    max-height: 300px;
+    padding: 18px;
+  }
+  
+  .checkbox-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+  }
+  
+  .checkbox-item {
+    display: flex;
+    align-items: center;
+  }
+  
+  .checkbox-item input[type="checkbox"] {
+    margin-right: 5px;
+    margin-top: 0;
+  }
 </style>
 </head>
 <body>
@@ -43,6 +104,64 @@
     <option value="roundtrip">往復モード</option>
   </select>
 </label>
+
+<button type="button" class="collapsible active">断線レール選択</button>
+<div class="content show">
+  <div id="mode1-checkboxes" class="checkbox-group">
+    <div class="checkbox-item">
+      <input type="checkbox" id="check-↓sG1" checked>
+      <label for="check-↓sG1">↓sG1 (31f)</label>
+    </div>
+    <div class="checkbox-item">
+      <input type="checkbox" id="check-↓sG2" checked>
+      <label for="check-↓sG2">↓sG2 (38f)</label>
+    </div>
+    <div class="checkbox-item">
+      <input type="checkbox" id="check-↓sG3" checked>
+      <label for="check-↓sG3">↓sG3 (45f)</label>
+    </div>
+    <div class="checkbox-item">
+      <input type="checkbox" id="check-↓sG4">
+      <label for="check-↓sG4">↓sG4 (50f)</label>
+    </div>
+    <div class="checkbox-item">
+      <input type="checkbox" id="check-↓sG5">
+      <label for="check-↓sG5">↓sG5 (56f)</label>
+    </div>
+    <div class="checkbox-item">
+      <input type="checkbox" id="check-↓sG6">
+      <label for="check-↓sG6">↓sG6 (60f)</label>
+    </div>
+    <div class="checkbox-item">
+      <input type="checkbox" id="check-↑sG1" checked>
+      <label for="check-↑sG1">↑sG1 (30f)</label>
+    </div>
+    <div class="checkbox-item">
+      <input type="checkbox" id="check-↑sG2" checked>
+      <label for="check-↑sG2">↑sG2 (39f)</label>
+    </div>
+    <div class="checkbox-item">
+      <input type="checkbox" id="check-↑sG3" checked>
+      <label for="check-↑sG3">↑sG3 (54f)</label>
+    </div>
+  </div>
+  
+  <div id="mode2-checkboxes" class="checkbox-group" style="display:none;">
+    <div class="checkbox-item">
+      <input type="checkbox" id="check-sG1" checked>
+      <label for="check-sG1">sG1 (61f)</label>
+    </div>
+    <div class="checkbox-item">
+      <input type="checkbox" id="check-sG2" checked>
+      <label for="check-sG2">sG2 (77f)</label>
+    </div>
+    <div class="checkbox-item">
+      <input type="checkbox" id="check-sG3" checked>
+      <label for="check-sG3">sG3 (99f)</label>
+    </div>
+  </div>
+</div>
+
 <div class="button-group">
   <button id="sortBtn" disabled>s-d差でソート</button>
   <button id="sortCBtn" disabled>c個数でソート</button>
@@ -103,25 +222,76 @@ const baseItems = [
 let currentResults = [];
 let displayedResults = []; // 現在表示されている結果
 
+// 折りたたみ機能
+document.addEventListener('DOMContentLoaded', function() {
+  const coll = document.getElementsByClassName("collapsible");
+  for (let i = 0; i < coll.length; i++) {
+    coll[i].addEventListener("click", function() {
+      this.classList.toggle("active");
+      const content = this.nextElementSibling;
+      content.classList.toggle("show");
+    });
+  }
+});
+
+// モード変更時のチェックボックス表示切り替え
+document.getElementById('mode').addEventListener('change', function() {
+  const mode = this.value;
+  const mode1Checkboxes = document.getElementById('mode1-checkboxes');
+  const mode2Checkboxes = document.getElementById('mode2-checkboxes');
+  
+  if (mode === 'loop') {
+    mode1Checkboxes.style.display = 'grid';
+    mode2Checkboxes.style.display = 'none';
+  } else {
+    mode1Checkboxes.style.display = 'none';
+    mode2Checkboxes.style.display = 'grid';
+  }
+});
+
+// 選択された断線レールを取得する関数
+function getSelectedMode1Items() {
+  const selected = [];
+  baseItems.filter(item => item.mode === 1).forEach(item => {
+    const checkbox = document.getElementById(`check-${item.name}`);
+    if (checkbox && checkbox.checked) {
+      selected.push(item);
+    }
+  });
+  return selected;
+}
+
+function getSelectedMode2Items() {
+  const selected = [];
+  baseItems.filter(item => item.mode === 2).forEach(item => {
+    const checkbox = document.getElementById(`check-${item.name}`);
+    if (checkbox && checkbox.checked) {
+      selected.push(item);
+    }
+  });
+  return selected;
+}
+
 document.getElementById('calc').addEventListener('click', ()=>{
   const target = Number(document.getElementById('target').value);
   const limit  = Number(document.getElementById('limit').value);
   const mode   = document.getElementById('mode').value;
-  // mode:0は往復の場合value2倍
-  let items = baseItems.map(it=>{
-    if (it.mode===0 && mode==="roundtrip"){
-      return {...it, value:it.value*2};
+  
+  // 基本アイテム（mode:0）を取得
+  let items = baseItems.filter(item => item.mode === 0).map(it=>{
+    if (mode === "roundtrip") {
+      return {...it, value: it.value * 2};
     }
     return {...it};
   });
-  // 周回モードでは mode:0,1 のみ
-  if(mode==="loop"){
-    items = items.filter(it=>it.mode===0 || it.mode===1);
+  
+  // 選択された断線レールを追加
+  if (mode === "loop") {
+    items = items.concat(getSelectedMode1Items());
+  } else if (mode === "roundtrip") {
+    items = items.concat(getSelectedMode2Items());
   }
-  // 往復モードでは mode:0,2 のみ
-  if(mode==="roundtrip"){
-    items = items.filter(it=>it.mode===0 || it.mode===2);
-  }
+  
   currentResults = findCombinations(target,limit,items);
   displayedResults = [...currentResults]; // 表示用結果も初期化
   document.getElementById('sortBtn').disabled = currentResults.length === 0;
@@ -198,20 +368,6 @@ document.getElementById('sortBtn').addEventListener('click', ()=>{
     const diffB = Math.abs(sCountB - dCountB);
     
     return diffA - diffB;
-  });
-  
-  render(displayedResults);
-});
-
-document.getElementById('filterBtn').addEventListener('click', ()=>{
-  if(displayedResults.length === 0) return;
-  
-  // 現在表示されている結果からmode:1または2の値が1種類以下の組み合わせを絞り込み
-  displayedResults = displayedResults.filter(result => {
-    // mode:1または2のアイテムで、個数が1以上のものを数える
-    const mode1or2Items = baseItems.filter(item => item.mode === 1 || item.mode === 2);
-    const usedCount = mode1or2Items.filter(item => (result[item.name] || 0) > 0).length;
-    return usedCount <= 1;
   });
   
   render(displayedResults);
