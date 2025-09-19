@@ -105,8 +105,9 @@
   </select>
 </label>
 
-<button type="button" class="collapsible">断線レール選択</button>
+<button type="button" class="collapsible">高度な設定</button>
 <div class="content">
+  レールの種類を選択してください。<br>
   <div id="mode1-checkboxes" class="checkbox-group">
     <div class="checkbox-item">
       <input type="checkbox" id="check-↓sG1" checked>
@@ -159,6 +160,9 @@
     <div class="checkbox-item">
       <input type="checkbox" id="check-sG3" checked>
       <label for="check-sG3">sG3 (99f)</label>
+    <div class="checkbox-item">
+      <input type="checkbox" id="check-sF">
+      <label for="check-sF">sF (132f)</label>
     </div>
   </div>
 </div>
@@ -218,6 +222,7 @@ const baseItems = [
   {name:"sG1", value:61, mode:2},
   {name:"sG2", value:77, mode:2},
   {name:"sG3", value:99, mode:2},
+  {name :"sF", value:132, mode:3}
 ];
 
 let currentResults = [];
@@ -400,8 +405,9 @@ function findCombinations(target,limit,items){
         const sCount=counts["s"]||0;
         const m1sum=items.filter(i=>i.mode===1).reduce((sum,i)=>sum+(counts[i.name]||0),0);
         const m2sum=items.filter(i=>i.mode===2).reduce((sum,i)=>sum+(counts[i.name]||0),0);
+        const m3sum=items.filter(i=>i.mode===3).reduce((sum,i)=>sum+(counts[i.name]||0),0);
         // mode1 ≤4, mode2 ≤2, mode1+mode2 ≤ sCount
-        if(m1sum<=4 && m2sum<=2 && m1sum+m2sum<=sCount){
+        if(m1sum<=4 && m2sum<=2 && m1sum+m2sum<=sCount && m3sum<=1){
           results.push({...counts});
         }
       }
