@@ -102,6 +102,16 @@
     font-style: italic;
     margin-left: 20px;
   }
+
+  .calculating {
+    color: #666;
+    font-style: italic;
+  }
+
+  #calc.disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
 </style>
 </head>
 <body>
@@ -270,6 +280,7 @@ const baseItems = [
 
 let currentResults = [];
 let displayedResults = []; // 現在表示されている結果
+let isCalculating = false; // 計算中フラグ
 
 // 折りたたみ機能
 document.addEventListener('DOMContentLoaded', function() {
@@ -339,7 +350,34 @@ function isSFSelected() {
   return checkbox && checkbox.checked;
 }
 
-document.getElementById('calc').addEventListener('click', ()=>{
+// UIの状態を更新
+function updateUIState(calculating) {
+  const calcBtn = document.getElementById('calc');
+  const buttons = [
+    document.getElementById('sortBtn'),
+    document.getElementById('sortCBtn'),
+    document.getElementById('sortModeBtn'),
+    document.getElementById('filterBtn'),
+    document.getElementById('resetBtn')
+  ];
+  
+  if (calculating) {
+    calcBtn.disabled = true;
+    calcBtn.classList.add('disabled');
+    calcBtn.textContent = '計算中...';
+    buttons.forEach(btn => btn.disabled = true);
+  } else {
+    calcBtn.disabled = false;
+    calcBtn.classList.remove('disabled');
+    calcBtn.textContent = '生成';
+    const hasResults = currentResults.length > 0;
+    buttons.forEach(btn => btn.disabled = !hasResults);
+  }
+}
+
+document.getElementById('calc').addEventListener('click', async () => {
+  if (isCalculating) return;
+  
   const target = Number(document.getElementById('target').value);
   const limit  = Number(document.getElementById('limit').value);
   const mode   = document.getElementById('mode').value;
@@ -363,14 +401,20 @@ document.getElementById('calc').addEventListener('click', ()=>{
     }
   }
   
-  currentResults = findCombinations(target,limit,items);
-  displayedResults = [...currentResults]; // 表示用結果も初期化
-  document.getElementById('sortBtn').disabled = currentResults.length === 0;
-  document.getElementById('sortModeBtn').disabled = currentResults.length === 0;
-  document.getElementById('sortCBtn').disabled = currentResults.length === 0;
-  document.getElementById('filterBtn').disabled = currentResults.length === 0;
-  document.getElementById('resetBtn').disabled = currentResults.length === 0;
-  render(displayedResults);
+  isCalculating = true;
+  updateUIState(true);
+  document.getElementById('results').textContent = '計算中...';
+  
+  try {
+    currentResults = await findCombinationsAsync(target, limit, items);
+    displayedResults = [...currentResults];
+    render(displayedResults);
+  } catch (error) {
+    document.getElementById('results').textContent = 'エラーが発生しました: ' + error.message;
+  } finally {
+    isCalculating = false;
+    updateUIState(false);
+  }
 });
 
 document.getElementById('sortModeBtn').addEventListener('click', ()=>{
@@ -460,52 +504,85 @@ function formatCompact(r){
     .join(', ');
 }
 
-function findCombinations(target,limit,items){
-  const results=[];
-  const counts={};
-  const sItem=items.find(i=>i.name==="s");
-  
-  function dfs(idx,remaining){
-    if(results.length>=limit) return;
-    if(idx===items.length){
-      if(remaining===0){
-        // 制約確認
-        const sCount=counts["s"]||0;
-        const m1sum=items.filter(i=>i.mode===1).reduce((sum,i)=>sum+(counts[i.name]||0),0);
-        const m2sum=items.filter(i=>i.mode===2).reduce((sum,i)=>sum+(counts[i.name]||0),0);
-        const m3sum=items.filter(i=>i.mode===3).reduce((sum,i)=>sum+(counts[i.name]||0),0);
-        
-        // sFの特殊制約：1回まで、sの個数制約を受けない
-        if(m3sum > 1) return; // sFは1回まで
-        
-        // 通常の制約：mode1 ≤4, mode2 ≤2, (mode1+mode2) ≤ sCount
-        // sFがある場合は、mode2が2回使われていてもOK（sFはsの制約を受けない）
-        const normalMode2Sum = m2sum; // sFを除いたmode2の合計
-        const constraintSum = m1sum + normalMode2Sum; // sFを除いた制約対象
-        
-        if(m1sum<=4 && m2sum<=2 && constraintSum<=sCount){
-          results.push({...counts});
-        }
+// 非同期版の組み合わせ検索関数
+async function findCombinationsAsync(target, limit, items) {
+  return new Promise((resolve, reject) => {
+    const results = [];
+    const counts = {};
+    const sItem = items.find(i => i.name === "s");
+    let iterationCount = 0;
+    const YIELD_INTERVAL = 1000; // 1000回の計算ごとに制御を戻す
+    
+    function dfs(idx, remaining) {
+      iterationCount++;
+      
+      // 一定間隔でブラウザに制御を戻す
+      if (iterationCount % YIELD_INTERVAL === 0) {
+        return new Promise(resolve => {
+          setTimeout(() => {
+            resolve(dfsSync(idx, remaining));
+          }, 0);
+        });
       }
-      return;
+      
+      return dfsSync(idx, remaining);
     }
     
-    const item=items[idx];
-    let max=Math.floor(remaining/item.value);
-    
-    // sFの場合は最大1回まで
-    if(item.mode === 3) {
-      max = Math.min(max, 1);
+    function dfsSync(idx, remaining) {
+      if (results.length >= limit) return Promise.resolve();
+      
+      if (idx === items.length) {
+        if (remaining === 0) {
+          // 制約確認
+          const sCount = counts["s"] || 0;
+          const m1sum = items.filter(i => i.mode === 1).reduce((sum, i) => sum + (counts[i.name] || 0), 0);
+          const m2sum = items.filter(i => i.mode === 2).reduce((sum, i) => sum + (counts[i.name] || 0), 0);
+          const m3sum = items.filter(i => i.mode === 3).reduce((sum, i) => sum + (counts[i.name] || 0), 0);
+          
+          if (m3sum > 1) return Promise.resolve(); 
+          
+          const normalMode2Sum = m2sum; 
+          const constraintSum = m1sum + normalMode2Sum; 
+          
+          if (m1sum <= 4 && m2sum <= 2 && constraintSum <= sCount) {
+            results.push({ ...counts });
+          }
+        }
+        return Promise.resolve();
+      }
+      
+      const item = items[idx];
+      let max = Math.floor(remaining / item.value);
+      
+      // sFの場合は最大1回まで
+      if (item.mode === 3) {
+        max = Math.min(max, 1);
+      }
+      
+      return processRange(idx, remaining, item, max, 0);
     }
     
-    for(let n=max;n>=0;n--){
-      counts[item.name]=n;
-      dfs(idx+1,remaining-n*item.value);
+    async function processRange(idx, remaining, item, max, n) {
+      if (n > max || results.length >= limit) {
+        counts[item.name] = 0;
+        return;
+      }
+      
+      counts[item.name] = max - n;
+      const result = await dfs(idx + 1, remaining - (max - n) * item.value);
+      
+      if (result instanceof Promise) {
+        await result;
+      }
+      
+      return processRange(idx, remaining, item, max, n + 1);
     }
-    counts[item.name]=0;
-  }
-  dfs(0,target);
-  return results;
+    
+    // 非同期処理を開始
+    dfs(0, target).then(() => {
+      resolve(results);
+    }).catch(reject);
+  });
 }
 </script>
 </body>
