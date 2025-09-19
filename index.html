@@ -138,63 +138,68 @@
     </div>
   </div>
   
-  <div class="section-title">断線（周回モード）</div>
-  <div id="mode1-checkboxes" class="checkbox-group">
-    <div class="checkbox-item">
-      <input type="checkbox" id="check-↓sG1" checked>
-      <label for="check-↓sG1">↓sG1 (31f)</label>
-    </div>
-    <div class="checkbox-item">
-      <input type="checkbox" id="check-↓sG2" checked>
-      <label for="check-↓sG2">↓sG2 (38f)</label>
-    </div>
-    <div class="checkbox-item">
-      <input type="checkbox" id="check-↓sG3" checked>
-      <label for="check-↓sG3">↓sG3 (45f)</label>
-    </div>
-    <div class="checkbox-item">
-      <input type="checkbox" id="check-↓sG4">
-      <label for="check-↓sG4">↓sG4 (50f)</label>
-    </div>
-    <div class="checkbox-item">
-      <input type="checkbox" id="check-↓sG5">
-      <label for="check-↓sG5">↓sG5 (56f)</label>
-    </div>
-    <div class="checkbox-item">
-      <input type="checkbox" id="check-↓sG6">
-      <label for="check-↓sG6">↓sG6 (60f)</label>
-    </div>
-    <div class="checkbox-item">
-      <input type="checkbox" id="check-↑sG1" checked>
-      <label for="check-↑sG1">↑sG1 (30f)</label>
-    </div>
-    <div class="checkbox-item">
-      <input type="checkbox" id="check-↑sG2" checked>
-      <label for="check-↑sG2">↑sG2 (39f)</label>
-    </div>
-    <div class="checkbox-item">
-      <input type="checkbox" id="check-↑sG3" checked>
-      <label for="check-↑sG3">↑sG3 (54f)</label>
+  <div id="mode1-section">
+    <div class="section-title">断線レール（周回モード）</div>
+    <div id="mode1-checkboxes" class="checkbox-group">
+      <div class="checkbox-item">
+        <input type="checkbox" id="check-↓sG1" checked>
+        <label for="check-↓sG1">↓sG1 (31f)</label>
+      </div>
+      <div class="checkbox-item">
+        <input type="checkbox" id="check-↓sG2" checked>
+        <label for="check-↓sG2">↓sG2 (38f)</label>
+      </div>
+      <div class="checkbox-item">
+        <input type="checkbox" id="check-↓sG3" checked>
+        <label for="check-↓sG3">↓sG3 (45f)</label>
+      </div>
+      <div class="checkbox-item">
+        <input type="checkbox" id="check-↓sG4">
+        <label for="check-↓sG4">↓sG4 (50f)</label>
+      </div>
+      <div class="checkbox-item">
+        <input type="checkbox" id="check-↓sG5">
+        <label for="check-↓sG5">↓sG5 (56f)</label>
+      </div>
+      <div class="checkbox-item">
+        <input type="checkbox" id="check-↓sG6">
+        <label for="check-↓sG6">↓sG6 (60f)</label>
+      </div>
+      <div class="checkbox-item">
+        <input type="checkbox" id="check-↑sG1" checked>
+        <label for="check-↑sG1">↑sG1 (30f)</label>
+      </div>
+      <div class="checkbox-item">
+        <input type="checkbox" id="check-↑sG2" checked>
+        <label for="check-↑sG2">↑sG2 (39f)</label>
+      </div>
+      <div class="checkbox-item">
+        <input type="checkbox" id="check-↑sG3" checked>
+        <label for="check-↑sG3">↑sG3 (54f)</label>
+      </div>
     </div>
   </div>
   
-  <div id="mode2-checkboxes" class="section-title">断線（往復モード）</div>
-  <div id="mode2-checkboxes" class="checkbox-group" style="display:none;">
-    <div class="checkbox-item">
-      <input type="checkbox" id="check-sG1" checked>
-      <label for="check-sG1">sG1 (61f)</label>
-    </div>
-    <div class="checkbox-item">
-      <input type="checkbox" id="check-sG2" checked>
-      <label for="check-sG2">sG2 (77f)</label>
-    </div>
-    <div class="checkbox-item">
-      <input type="checkbox" id="check-sG3" checked>
-      <label for="check-sG3">sG3 (99f)</label>
-    </div>
-    <div class="checkbox-item">
-      <input type="checkbox" id="check-sF">
-      <label for="check-sF">sF (132f)</label>
+  <div id="mode2-section" style="display:none;">
+    <div class="section-title">断線レール（往復モード）</div>
+    <div id="mode2-checkboxes" class="checkbox-group">
+      <div class="checkbox-item">
+        <input type="checkbox" id="check-sG1" checked>
+        <label for="check-sG1">sG1 (61f)</label>
+      </div>
+      <div class="checkbox-item">
+        <input type="checkbox" id="check-sG2" checked>
+        <label for="check-sG2">sG2 (77f)</label>
+      </div>
+      <div class="checkbox-item">
+        <input type="checkbox" id="check-sG3" checked>
+        <label for="check-sG3">sG3 (99f)</label>
+      </div>
+      <div class="checkbox-item">
+        <input type="checkbox" id="check-sF">
+        <label for="check-sF">sF (132f)</label>
+        <div class="special-note">※特殊：1回のみ使用可能、sの個数に依存しない</div>
+      </div>
     </div>
   </div>
 </div>
@@ -222,9 +227,6 @@ c = 曲線レール<br>
 ↓sG1 = ↓G1-直線レール<br>
 ↓sG2 = ↓G2-直線レール<br>
 ↓sG3 = ↓G3-直線レール<br>
-↓sG4 = ↓G4-直線レール<br>
-↓sG5 = ↓G5-直線レール<br>
-↓sG6 = ↓G6-直線レール<br>
 ↑sG1 = ↑G1-直線レール<br>
 ↑sG2 = ↑G2-直線レール<br>
 ↑sG3 = ↑G3-直線レール<br>
@@ -232,7 +234,7 @@ c = 曲線レール<br>
 sG1 = G1-直線レール<br>
 sG2 = G2-直線レール<br>
 sG3 = G3-直線レール<br>
-sF = 直線レール-F<br>
+sF = F-直線レール（特殊：1回のみ使用可能、sの個数制約を受けない）<br>
 <br>
 <h2>ソート、絞り込みについて</h2>
 ソート、絞り込みは「生成」ボタンを押した後に使用可能になります。<br>
@@ -280,15 +282,15 @@ document.addEventListener('DOMContentLoaded', function() {
 // モード変更時のチェックボックス表示切り替え
 document.getElementById('mode').addEventListener('change', function() {
   const mode = this.value;
-  const mode1Checkboxes = document.getElementById('mode1-checkboxes');
-  const mode2Checkboxes = document.getElementById('mode2-checkboxes');
+  const mode1Section = document.getElementById('mode1-section');
+  const mode2Section = document.getElementById('mode2-section');
   
   if (mode === 'loop') {
-    mode1Checkboxes.style.display = 'grid';
-    mode2Checkboxes.style.display = 'none';
+    mode1Section.style.display = 'block';
+    mode2Section.style.display = 'none';
   } else {
-    mode1Checkboxes.style.display = 'none';
-    mode2Checkboxes.style.display = 'grid';
+    mode1Section.style.display = 'none';
+    mode2Section.style.display = 'block';
   }
 });
 
