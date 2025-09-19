@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>組み合わせ計算</title>
+<title>断線利用レールループ生成ツール</title>
 <style>
   body {
     font-family: sans-serif;
@@ -29,7 +29,7 @@
 </style>
 </head>
 <body>
-<h1>組み合わせ計算</h1>
+<h1>断線利用レールループ生成ツール</h1>
 <small>断線を使用したレールループを生成してくれます。(beta版)<br>使い方は<a href="#HowtoUse">こちら</a></small>
 <label>目標値[f]：
   <input type="number" id="target" value="300">
@@ -76,7 +76,7 @@ sG3 = G3-直線レール<br>
 <h2>ソート、絞り込みについて</h2>
 ソート、絞り込みは「生成」ボタンを押した後に使用可能になります。<br>
 <button>s-d差でソート</button> - sとdの個数の差の絶対値が小さい順にソートします。<br>
-<button>c個数でソート</button> - 場所を取るcの個数が少ない順にソートします。<br>
+<button>c個数でソート</button> - cの個数が少ない順にソートします。<br>
 <button>断線の個数でソート</button> - 断線の個数の合計が少ない順にソートします。<br>
 <button>断線が1種類以下で絞込</button> - 断線が1種類以下の組み合わせに絞り込みます。<br>
 <button>リセット</button> - ソート、絞り込み前の状態に戻します。<br>
@@ -89,6 +89,9 @@ const baseItems = [
   {name:"↓sG1", value:31, mode:1},
   {name:"↓sG2", value:38, mode:1},
   {name:"↓sG3", value:45, mode:1},
+  {name:"↓sG4", value:50, mode:1},
+  {name:"↓sG5", value:56, mode:1},
+  {name:"↓sG6", value:60, mode:1},
   {name:"↑sG1", value:30, mode:1},
   {name:"↑sG2", value:39, mode:1},
   {name:"↑sG3", value:54, mode:1},
