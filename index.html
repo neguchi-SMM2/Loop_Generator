@@ -222,12 +222,14 @@
   <button id="filterBtn" disabled>断線が1種類以下で絞込</button>
   <button id="resetBtn" disabled>リセット</button>
   <br><button id="calc">生成</button>
+  <button id="stopBtn" disabled>停止</button>
 </div>
 <div id="results"></div>
 <br>
 <h1 id="HowtoUse">使い方</h1>
 目標値に希望の値を入力し、モードを選択して「生成」ボタンを押すと結果が表示されます。<br>
 目標値が大きくなるにつれ計算量も増えるため、最大表示数を適宜調整してください。<br>
+生成中は「停止」ボタンで計算を中断できます。<br>
 <br>
 <h2>レール(断線)種類</h2><br>
 <h3>基本レール</h3>
@@ -281,6 +283,7 @@ const baseItems = [
 let currentResults = [];
 let displayedResults = []; // 現在表示されている結果
 let isCalculating = false; // 計算中フラグ
+let shouldStop = false; // 停止フラグ
 
 // 折りたたみ機能
 document.addEventListener('DOMContentLoaded', function() {
@@ -353,6 +356,7 @@ function isSFSelected() {
 // UIの状態を更新
 function updateUIState(calculating) {
   const calcBtn = document.getElementById('calc');
+  const stopBtn = document.getElementById('stopBtn');
   const buttons = [
     document.getElementById('sortBtn'),
     document.getElementById('sortCBtn'),
@@ -365,15 +369,26 @@ function updateUIState(calculating) {
     calcBtn.disabled = true;
     calcBtn.classList.add('disabled');
     calcBtn.textContent = '計算中...';
+    stopBtn.disabled = false;
     buttons.forEach(btn => btn.disabled = true);
   } else {
     calcBtn.disabled = false;
     calcBtn.classList.remove('disabled');
     calcBtn.textContent = '生成';
+    stopBtn.disabled = true;
     const hasResults = currentResults.length > 0;
     buttons.forEach(btn => btn.disabled = !hasResults);
   }
 }
+
+// 停止ボタンのイベントリスナー
+document.getElementById('stopBtn').addEventListener('click', () => {
+  if (isCalculating) {
+    shouldStop = true;
+    document.getElementById('stopBtn').textContent = '停止中...';
+    document.getElementById('stopBtn').disabled = true;
+  }
+});
 
 document.getElementById('calc').addEventListener('click', async () => {
   if (isCalculating) return;
@@ -402,6 +417,7 @@ document.getElementById('calc').addEventListener('click', async () => {
   }
   
   isCalculating = true;
+  shouldStop = false;
   updateUIState(true);
   document.getElementById('results').textContent = '計算を開始しています...';
   
@@ -412,15 +428,18 @@ document.getElementById('calc').addEventListener('click', async () => {
     // 計算完了時の最終表示
     const out = document.getElementById('results');
     if (currentResults.length === 0) {
-      out.textContent = '該当する組み合わせはありません。';
+      out.textContent = shouldStop ? '計算が停止されました。該当する組み合わせは見つかりませんでした。' : '該当する組み合わせはありません。';
     } else {
-      out.textContent = `計算完了！ ${currentResults.length}件の結果が見つかりました。\n\n` + 
+      const statusText = shouldStop ? '計算が停止されました。' : '計算完了！';
+      out.textContent = `${statusText} ${currentResults.length}件の結果が見つかりました。\n\n` + 
                        currentResults.map(r=>formatCompact(r)).join("\n");
     }
   } catch (error) {
     document.getElementById('results').textContent = 'エラーが発生しました: ' + error.message;
   } finally {
     isCalculating = false;
+    shouldStop = false;
+    document.getElementById('stopBtn').textContent = '停止';
     updateUIState(false);
   }
 });
@@ -539,6 +558,11 @@ async function findCombinationsAsync(target, limit, items) {
     }
     
     function dfs(idx, remaining) {
+      // 停止フラグがtrueの場合は処理を終了
+      if (shouldStop) {
+        return Promise.resolve();
+      }
+      
       iterationCount++;
       
       // 一定間隔でブラウザに制御を戻す
@@ -554,7 +578,7 @@ async function findCombinationsAsync(target, limit, items) {
     }
     
     function dfsSync(idx, remaining) {
-      if (results.length >= limit) return Promise.resolve();
+      if (shouldStop || results.length >= limit) return Promise.resolve();
       
       if (idx === items.length) {
         if (remaining === 0) {
@@ -596,7 +620,7 @@ async function findCombinationsAsync(target, limit, items) {
     }
     
     async function processRange(idx, remaining, item, max, n) {
-      if (n > max || results.length >= limit) {
+      if (shouldStop || n > max || results.length >= limit) {
         counts[item.name] = 0;
         return;
       }
