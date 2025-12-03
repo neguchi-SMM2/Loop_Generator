@@ -5,27 +5,76 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>断線利用レールループ生成ツール</title>
 <style>
+  * {
+    box-sizing: border-box;
+  }
   body {
     font-family: sans-serif;
     background: #f5f5f5;
     color: #222;
     margin: 0;
-    padding: 20px;
+    padding: 10px;
+    max-width: 100%;
+    overflow-x: hidden;
   }
-  h1 { font-size: 20px; margin-bottom: 10px; }
-  #HowtoUse { margin-top: 30px; font-size: 32px; }
+  h1 { 
+    font-size: 18px; 
+    margin-bottom: 10px;
+    word-wrap: break-word;
+  }
+  #HowtoUse { margin-top: 30px; font-size: 24px; }
   label { display:block; margin-top:10px; }
   input,select,button {
     margin-top:5px; padding:5px 8px; font-size:14px;
+    max-width: 100%;
+  }
+  input[type="number"] {
+    width: 100%;
+    max-width: 200px;
+  }
+  select {
+    width: 100%;
+    max-width: 200px;
   }
   button {
-    margin-right: 10px;
+    margin-right: 5px;
+    margin-bottom: 5px;
     cursor: pointer;
   }
   .button-group {
     margin-top: 10px;
   }
-  #results { margin-top:15px; font-family: monospace; white-space:pre-wrap; font-size:15px;}
+  #results { 
+    margin-top:15px; 
+    font-family: monospace; 
+    white-space:pre-wrap; 
+    font-size:13px;
+    word-break: break-word;
+  }
+  
+  @media (max-width: 600px) {
+    body {
+      padding: 5px;
+    }
+    h1 {
+      font-size: 16px;
+    }
+    #HowtoUse {
+      font-size: 20px;
+    }
+    button {
+      font-size: 13px;
+      padding: 8px 10px;
+      margin-right: 3px;
+      margin-bottom: 5px;
+    }
+    input, select {
+      font-size: 16px;
+    }
+    #results {
+      font-size: 12px;
+    }
+  }
   
   .collapsible {
     background-color: #e7e7e7;
@@ -67,15 +116,22 @@
   }
   
   .content.show {
-    max-height: 400px;
+    max-height: 1000px;
     padding: 18px;
   }
   
   .checkbox-group {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 8px;
     margin-top: 10px;
+  }
+  
+  @media (max-width: 600px) {
+    .checkbox-group {
+      grid-template-columns: 1fr;
+      gap: 5px;
+    }
   }
   
   .checkbox-item {
@@ -101,6 +157,35 @@
     color: #666;
     font-style: italic;
     margin-left: 20px;
+  }
+
+  .rail-limit-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+  }
+  
+  .rail-limit-item {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .rail-limit-item label {
+    font-size: 13px;
+    margin-bottom: 3px;
+  }
+  
+  .rail-limit-item input[type="number"] {
+    width: 100%;
+    max-width: none;
+  }
+  
+  @media (max-width: 600px) {
+    .rail-limit-group {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
   }
 
   .calculating {
@@ -132,6 +217,24 @@
 
 <button type="button" class="collapsible">高度な設定</button>
 <div class="content">
+  <div class="section-title">基本レールの使用回数指定</div>
+  <small>各レールの使用回数を指定します（0で指定なし）</small>
+  <div class="rail-limit-group">
+    <div class="rail-limit-item">
+      <label for="limit-s">s - 直線レール (21f)</label>
+      <input type="number" id="limit-s" value="0" min="0">
+    </div>
+    <div class="rail-limit-item">
+      <label for="limit-d">d - 斜線レール (30f)</label>
+      <input type="number" id="limit-d" value="0" min="0">
+    </div>
+    <div class="rail-limit-item">
+      <label for="limit-c">c - 曲線レール (36f)</label>
+      <input type="number" id="limit-c" value="0" min="0">
+    </div>
+  </div>
+  
+  <div class="section-title" style="margin-top: 20px;">使用するレール・断線の種類</div>
   使用するレールまたは断線の種類を選択します。<br>
   <div class="section-title">基本レール</div>
   <div class="checkbox-group">
@@ -208,7 +311,7 @@
         <label for="check-sG3">sG3 (99f)</label>
       </div>
       <div class="checkbox-item">
-        <input type="checkbox" id="check-sF" checked>
+        <input type="checkbox" id="check-sF">
         <label for="check-sF">sF (132f)</label>
       </div>
     </div>
@@ -230,6 +333,11 @@
 目標値に希望の値を入力し、モードを選択して「生成」ボタンを押すと結果が表示されます。<br>
 目標値が大きくなるにつれ計算量も増えるため、最大表示数を適宜調整してください。<br>
 生成中は「停止」ボタンで計算を中断できます。<br>
+<br>
+<h2>基本レールの使用回数指定</h2>
+高度な設定で、各基本レール（s、d、c）の使用回数を指定できます。<br>
+0を入力すると指定なしとして扱われます。<br>
+例：直線レールをぴったり10個使いたい場合は「10」と入力してください。<br>
 <br>
 <h2>レール(断線)種類</h2><br>
 <h3>基本レール</h3>
@@ -277,13 +385,13 @@ const baseItems = [
   {name:"sG1", value:61, mode:2},
   {name:"sG2", value:77, mode:2},
   {name:"sG3", value:99, mode:2},
-  {name:"sF", value:132, mode:3} // 特殊モード
+  {name:"sF", value:132, mode:3}
 ];
 
 let currentResults = [];
-let displayedResults = []; // 現在表示されている結果
-let isCalculating = false; // 計算中フラグ
-let shouldStop = false; // 停止フラグ
+let displayedResults = [];
+let isCalculating = false;
+let shouldStop = false;
 
 // 折りたたみ機能
 document.addEventListener('DOMContentLoaded', function() {
@@ -447,7 +555,6 @@ document.getElementById('calc').addEventListener('click', async () => {
 document.getElementById('sortModeBtn').addEventListener('click', ()=>{
   if(displayedResults.length === 0) return;
   
-  // 現在表示されている結果をmode:1,2,3の個数の合計でソート（昇順）
   displayedResults = [...displayedResults].sort((a, b) => {
     const mode123ItemsA = baseItems.filter(item => item.mode === 1 || item.mode === 2 || item.mode === 3);
     const totalCountA = mode123ItemsA.reduce((sum, item) => sum + (a[item.name] || 0), 0);
@@ -464,7 +571,6 @@ document.getElementById('sortModeBtn').addEventListener('click', ()=>{
 document.getElementById('sortCBtn').addEventListener('click', ()=>{
   if(displayedResults.length === 0) return;
   
-  // 現在表示されている結果をcの個数でソート（昇順）
   displayedResults = [...displayedResults].sort((a, b) => {
     const cCountA = a["c"] || 0;
     const cCountB = b["c"] || 0;
@@ -477,9 +583,7 @@ document.getElementById('sortCBtn').addEventListener('click', ()=>{
 document.getElementById('filterBtn').addEventListener('click', ()=>{
   if(displayedResults.length === 0) return;
   
-  // 現在表示されている結果からmode:1,2,3の値が1種類以下の組み合わせを絞り込み
   displayedResults = displayedResults.filter(result => {
-    // mode:1,2,3のアイテムで、個数が1以上のものを数える
     const mode123Items = baseItems.filter(item => item.mode === 1 || item.mode === 2 || item.mode === 3);
     const usedCount = mode123Items.filter(item => (result[item.name] || 0) > 0).length;
     return usedCount <= 1;
@@ -491,7 +595,6 @@ document.getElementById('filterBtn').addEventListener('click', ()=>{
 document.getElementById('resetBtn').addEventListener('click', ()=>{
   if(currentResults.length === 0) return;
   
-  // 元の計算結果に戻す
   displayedResults = [...currentResults];
   render(displayedResults);
 });
@@ -499,7 +602,6 @@ document.getElementById('resetBtn').addEventListener('click', ()=>{
 document.getElementById('sortBtn').addEventListener('click', ()=>{
   if(displayedResults.length === 0) return;
   
-  // 現在表示されている結果をs-d差の絶対値でソート（昇順）
   displayedResults = [...displayedResults].sort((a, b) => {
     const sCountA = a["s"] || 0;
     const dCountA = a["d"] || 0;
@@ -539,33 +641,35 @@ async function findCombinationsAsync(target, limit, items) {
     const sItem = items.find(i => i.name === "s");
     let iterationCount = 0;
     let lastDisplayUpdate = 0;
-    const YIELD_INTERVAL = 10000; // 10000回の計算ごとに制御を戻す
-    const DISPLAY_INTERVAL = 100; // 100個の結果ごとに表示を更新
+    const YIELD_INTERVAL = 10000;
+    const DISPLAY_INTERVAL = 100;
     
-    // リアルタイム表示用の関数
+    // 基本レールの使用回数制限を取得
+    const railLimits = {
+      s: Number(document.getElementById('limit-s').value) || Infinity,
+      d: Number(document.getElementById('limit-d').value) || Infinity,
+      c: Number(document.getElementById('limit-c').value) || Infinity
+    };
+    
     function updateDisplay() {
       if (results.length > lastDisplayUpdate) {
         displayedResults = [...results];
         render(displayedResults);
         lastDisplayUpdate = results.length;
         
-        // 結果数を表示に追加
         const out = document.getElementById('results');
-        const currentText = out.textContent;
         out.textContent = `計算中... (${results.length}/${limit}件見つかりました)\n\n` + 
                          results.map(r=>formatCompact(r)).join("\n");
       }
     }
     
     function dfs(idx, remaining) {
-      // 停止フラグがtrueの場合は処理を終了
       if (shouldStop) {
         return Promise.resolve();
       }
       
       iterationCount++;
       
-      // 一定間隔でブラウザに制御を戻す
       if (iterationCount % YIELD_INTERVAL === 0) {
         return new Promise(resolve => {
           setTimeout(() => {
@@ -582,24 +686,27 @@ async function findCombinationsAsync(target, limit, items) {
       
       if (idx === items.length) {
         if (remaining === 0) {
-          // 制約確認
           const sCount = counts["s"] || 0;
+          const dCount = counts["d"] || 0;
+          const cCount = counts["c"] || 0;
+          
+          // 基本レールの使用回数指定チェック
+          if (railLimits.s !== Infinity && sCount !== railLimits.s) return Promise.resolve();
+          if (railLimits.d !== Infinity && dCount !== railLimits.d) return Promise.resolve();
+          if (railLimits.c !== Infinity && cCount !== railLimits.c) return Promise.resolve();
+          
           const m1sum = items.filter(i => i.mode === 1).reduce((sum, i) => sum + (counts[i.name] || 0), 0);
           const m2sum = items.filter(i => i.mode === 2).reduce((sum, i) => sum + (counts[i.name] || 0), 0);
           const m3sum = items.filter(i => i.mode === 3).reduce((sum, i) => sum + (counts[i.name] || 0), 0);
           
-          // sFの特殊制約：1回まで、sの個数制約を受けない
-          if (m3sum > 1) return Promise.resolve(); // sFは1回まで
+          if (m3sum > 1) return Promise.resolve();
           
-          // 通常の制約：mode1 ≤4, mode2 ≤2, (mode1+mode2) ≤ sCount
-          // sFがある場合は、mode2が2回使われていてもOK（sFはsの制約を受けない）
-          const normalMode2Sum = m2sum; // sFを除いたmode2の合計
-          const constraintSum = m1sum + normalMode2Sum; // sFを除いた制約対象
+          const normalMode2Sum = m2sum;
+          const constraintSum = m1sum + normalMode2Sum;
           
           if (m1sum <= 4 && m2sum <= 2 && constraintSum <= sCount) {
             results.push({ ...counts });
             
-            // 定期的に表示を更新
             if (results.length % DISPLAY_INTERVAL === 0 || results.length >= limit) {
               updateDisplay();
             }
@@ -611,9 +718,22 @@ async function findCombinationsAsync(target, limit, items) {
       const item = items[idx];
       let max = Math.floor(remaining / item.value);
       
-      // sFの場合は最大1回まで
       if (item.mode === 3) {
         max = Math.min(max, 1);
+      }
+      
+      // 基本レールの使用回数指定がある場合は、その回数に固定
+      if (railLimits[item.name] !== undefined && railLimits[item.name] !== Infinity) {
+        const exactCount = railLimits[item.name];
+        // 指定回数が計算可能範囲内かチェック
+        if (exactCount <= max) {
+          counts[item.name] = exactCount;
+          return dfs(idx + 1, remaining - exactCount * item.value);
+        } else {
+          // 指定回数が使用不可能な場合はスキップ
+          counts[item.name] = 0;
+          return Promise.resolve();
+        }
       }
       
       return processRange(idx, remaining, item, max, 0);
@@ -635,9 +755,7 @@ async function findCombinationsAsync(target, limit, items) {
       return processRange(idx, remaining, item, max, n + 1);
     }
     
-    // 非同期処理を開始
     dfs(0, target).then(() => {
-      // 最終的に残った結果があれば表示
       updateDisplay();
       resolve(results);
     }).catch(reject);
