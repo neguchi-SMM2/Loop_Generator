@@ -201,7 +201,7 @@
 </head>
 <body>
 <h1>断線利用レールループ生成ツール</h1>
-<small>断線を使用したレールループを生成してくれます。(beta版)<br>使い方は<a href="#HowtoUse">こちら</a></small>
+<small>断線を使用したレールループを生成してくれます。<br>使い方は<a href="#HowtoUse">こちら</a></small>
 <label>目標値[f]：
   <input type="number" id="target" value="300">
 </label>
@@ -218,7 +218,7 @@
 <button type="button" class="collapsible">高度な設定</button>
 <div class="content">
   <div class="section-title">基本レールの使用回数指定</div>
-  <small>各レールの使用回数を指定します（0で指定なし）</small>
+  <small>各レールの使用回数を指定します（0または空白で指定なし）</small>
   <div class="rail-limit-group">
     <div class="rail-limit-item">
       <label for="limit-s">s - 直線レール (21f)</label>
@@ -336,10 +336,10 @@
 <br>
 <h2>基本レールの使用回数指定</h2>
 高度な設定で、各基本レール（s、d、c）の使用回数を指定できます。<br>
-0を入力すると指定なしとして扱われます。<br>
-例：直線レールをぴったり10個使いたい場合は「10」と入力してください。<br>
+0または空白を入力すると指定なしとして扱われます。<br>
+また、使用する断線の種類も指定できます。<br>
 <br>
-<h2>レール(断線)種類</h2><br>
+<h2>レール(断線)種類</h2>
 <h3>基本レール</h3>
 s = 直線レール<br>
 d = 斜線レール<br>
