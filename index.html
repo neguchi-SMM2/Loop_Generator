@@ -257,7 +257,7 @@
     <div id="mode1-checkboxes" class="checkbox-group">
       <div class="checkbox-item">
         <input type="checkbox" id="check-↓sG1" checked>
-        <label for="check-↓sG1">↓sG1 (31f)</label>
+        <label for="check-↓sG1">↓sG1 (31f) </label>
       </div>
       <div class="checkbox-item">
         <input type="checkbox" id="check-↓sG2" checked>
@@ -282,7 +282,7 @@
       <br>
       <div class="checkbox-item">
         <input type="checkbox" id="check-↑sG1" checked>
-        <label for="check-↑sG1">↑sG1 (30f)</label>
+        <label for="check-↑sG1">↑sG1 (30f) ※座標依存あり</label>
       </div>
       <div class="checkbox-item">
         <input type="checkbox" id="check-↑sG2" checked>
@@ -300,7 +300,7 @@
     <div id="mode2-checkboxes" class="checkbox-group">
       <div class="checkbox-item">
         <input type="checkbox" id="check-sG1" checked>
-        <label for="check-sG1">sG1 (61f)</label>
+        <label for="check-sG1">sG1 (61f) ※座標依存あり</label>
       </div>
       <div class="checkbox-item">
         <input type="checkbox" id="check-sG2" checked>
@@ -367,6 +367,10 @@ sF = 直線レール-F<br>
 <button>断線の個数でソート</button> - 断線の個数の合計が少ない順にソートします。<br>
 <button>断線が1種類以下で絞込</button> - 断線が1種類以下の組み合わせに絞り込みます。<br>
 <button>リセット</button> - ソート、絞り込み前の状態に戻します。<br>
+<br>
+<h2>その他</h2>
+<b>↑G1-直線レール</b>と<b>G1-直線レール</b>は<b>座標によって遅延(f)が変わり</b>ます。<br>
+これらの断線が<b>16≦y≦64</b>で使用される場合、他のエリアより<b>1fだけ早く</b>なります。ご利用は計画的に。
 <br>
 <script>
 const baseItems = [
