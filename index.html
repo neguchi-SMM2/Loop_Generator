@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>断線利用レールループ生成ツール</title>
+<link rel="icon" type="image/png" href="icon.png">
 <style>
   * {
     box-sizing: border-box;
@@ -711,7 +712,7 @@ async function findCombinationsAsync(target, limit, items) {
           const normalMode2Sum = m2sum;
           const constraintSum = m1sum + normalMode2Sum;
           
-          if (m1sum <= 4 && m2sum <= 2 && constraintSum <= sCount) {
+          if (m1sum <= 4 && m2sum <= 2 && constraintSum <= sCount - 1) {
             results.push({ ...counts });
             
             if (results.length % DISPLAY_INTERVAL === 0 || results.length >= limit) {
